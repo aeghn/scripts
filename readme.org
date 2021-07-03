@@ -1,7 +1,7 @@
 * 使用说明？
 ** stamp
    可读时间戳和 Unix 事件戳之间的转换\\
-   - 可读时间戳转换为 Unix 时间戳
+   - 可读时间戳转换为 Unix 时间戳，
      要求格式为：yyyy-mm-dd HH/MM/SS
      #+begin_src shell
        $ stamp '2021/07/03 18:31:59'
@@ -9,7 +9,7 @@
        * Fmt: 2021-07-03 18:31:59
        * Unix: 1625308319
      #+end_src
-   - Unix 时间戳转为可读时间戳
+   - Unix 时间戳转为可读时间戳，
      要求格式为：纯数字，不能低于 10 位
      #+begin_src shell
        $ stamp 1625310273123
@@ -18,3 +18,7 @@
        $ stamp 1625310273
        1625310273 => 2021-07-03 19:04:33
      #+end_src
+** dictf
+   结合 sdcv 和 fzf 的终端词典，非开箱即用
+   [[https://raw.githubusercontent.com/aeghn/scripts/master/prebiews/dictf.png]]
+   
