@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+export SHELL=$(which bash)
+export CANGJIE_FILE="$HOME/.files/chars/cangjie.txt"
+VOCABULARY_FILE="$HOME/.stardict/list/common"
+FZF_BIND_KEYS="ctrl-g:clear-query,enter:clear-query,ctrl-j:clear-query,alt-n:preview-down,alt-p:preview-up"
+
+
+fzf_preview() {
+    word="${1%% .|*}"
+    word="${word%% }"
+    if [ ${#word} -eq 1 ] && [[ ! "$word" =~ [a-z] ]]; then
+        echo -e "\033[34m  -- 仓颉对照表 --\033[0m"
+        rg "^$word" "$CANGJIE_FILE" | sed "s/[ ]*|[ ]*/ || /g"
+        echo ""
+    fi
+
+    sdcv -n -c -e "$word" 2>/dev/null |\
+        sed -e 's/^/ /g' -e 's/ [^ ]*.wav//g' -e 's/BrE//g' -e 's/AmE//g'
+}
+
+export -f fzf_preview
+
+(cat $VOCABULARY_FILE; cat $CANGJIE_FILE )|\
+    fzf -e -i --hscroll-off=5\
+        --preview " fzf_preview {} " \
+        --preview-window sharp \
+        --preview-window=up:70%:wrap \
+        --bind="$FZF_BIND_KEYS"
