@@ -20,5 +20,5 @@
      #+end_src
 ** dictf
    结合 sdcv 和 fzf 的终端词典，非开箱即用
-   [[https://raw.githubusercontent.com/aeghn/scripts/master/prebiews/dictf.png]]
+   [[https://raw.githubusercontent.com/aeghn/scripts/master/previews/dictf.jpg]]
    
