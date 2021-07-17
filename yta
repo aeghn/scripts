@@ -98,6 +98,7 @@ prepare_to_download() {
         if [ $i -eq ${RETRY_TIMES} ]; then
             set_status "$id" "wrong"
         fi
+        sleep 5
     done
 
     echo "REMOVE lockfile $lock_file: $1"
@@ -186,19 +187,29 @@ get_lock_count() {
 
 cat_lock_logs() {
     cd "${LOCK_DIR}"
-    ls ${LOCK_DIR} | grep "${LOCK_PREFIX}" | while read line; do
-        echo "* $(tail -1 "$line")"
+    local last='____'
+    local now=''
+    for ((i=0; ;i++)); do
+        now=''
+        while read line; do
+            [ "${#line}" -eq 0 ] || now="${now}\n * $(tail -1 "$line")"
+        done <<< $(ls ${LOCK_DIR} | grep "${LOCK_PREFIX}")
+
+        if [ "x${now}" != "x${last}" ]; then
+            echo -e " > \033[32m$(date)\033[0m${now}"
+            last="${now}"
+        fi
+
+        sleep 1
+
     done
 }
 
 # set -x
 main() {
+    cat_lock_logs &
     while true; do
         append_queue
-        echo ""
-        date
-        cat_lock_logs
-        sleep 1
     done
 }
 
