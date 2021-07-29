@@ -12,6 +12,8 @@ export_function() {
     export -f fzf_show
     export -f add_record
     export -f copy_file
+    export -f copy_mode
+    export -f nocnoc
 }
 
 fzf_show() {
@@ -19,13 +21,13 @@ fzf_show() {
     local ar="alt-l:execute(add_record)+abort"                             # Add new records
     local es="ctrl-l:execute(edit_single {})+abort"                         # Edit one record
     local cf="alt-w:execute(copy_file {})"
+    local cm="ctrl-w:execute(copy_mode {})"
 
     cd "$CHEET_DIR"
-
-
-    xargs awk 'FNR==1 {printf("%s ::%s\n",l, fn); fn=FILENAME; l=""} {l=l" "$0}; END{printf("%s ::%s\n",l, fn);}' *.txt \
+    
+    awk 'FNR==1 {printf("%s ::%s\n",l, fn); fn=FILENAME; l=""} {l=l" "$0}; END{printf("%s ::%s\n",l, fn);}' *.txt \
         | sed '1d' \
-        | fzf --preview "fzf_preview {}" --preview-window=up:70%:wrap --bind="$es,$ar,$noc,$cf"
+        | fzf --preview "fzf_preview {}" --preview-window=up:70%:wrap --bind="$es,$ar,$noc,$cf,$cm"
 }
 
 edit_single() {
@@ -70,8 +72,22 @@ fzf_preview() {
 
 copy_file() {
     local file="${@##*::}"
-    xclip -sel clip < "$CHEET_DIR/$file"
-    
+    xclip -sel clip < "$CHEET_DIR/$file"    
+}
+
+copy_mode() {
+    local file="${@##*::}"
+
+    local cf="alt-w:execute(echo {} | xclip -sel clip)"
+
+    tac "$CHEET_DIR/$file" \
+        | fzf --bind="$cf"
+}
+
+nocnoc() {
+    local file="${@##*::}"
+
+    notify-send -t 60000 "Cheet" "$(cat "$CHEET_DIR/$file")"
 }
 
 main() {
