@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+export CHEET_DIR="$HOME/Documents/cheets"
+export SHELL="$(which bash)"
+export EDITOR="vim"
+
+# TODO: copy mode
+
+export_function() {
+    export -f fzf_preview
+    export -f edit_single
+    export -f fzf_show
+    export -f add_record
+    export -f copy_file
+}
+
+fzf_show() {
+    local noc="ctrl-u:execute(nocnoc {})"                                   # Send a record to notification (stay 60 seconds)
+    local ar="alt-l:execute(add_record)+abort"                             # Add new records
+    local es="ctrl-l:execute(edit_single {})+abort"                         # Edit one record
+    local cf="alt-w:execute(copy_file {})"
+
+    cd "$CHEET_DIR"
+
+    ls *.txt \
+        | xargs awk 'FNR==1 {printf("%s ::%s\n",l, fn); fn=FILENAME; l=""} {l=l" "$0}; END{printf("%s ::%s\n",l, fn);}' \
+        | sed '1d' \
+        | fzf --preview "fzf_preview {}" --preview-window=up:70%:wrap --bind="$es,$ar,$noc,$cf"
+}
+
+edit_single() {
+    local ori_file="${@##*::}"
+    local his_file="${ori_file}_$(date +%y%m%d_%H%M%S)"
+
+    cd "$CHEET_DIR"
+    
+    cp "$ori_file" "$his_file"
+
+    $EDITOR "$ori_file" < /dev/tty
+    
+    if [ "$(md5sum "$ori_file" | cut -d" " -f1)" = "$(md5sum "$his_file" | cut -d" " -f1)" ]; then
+        rm "$his_file"
+    else
+        chmod 400 "$his_file"
+    fi
+   
+    fzf_show
+}
+
+add_record() {
+    local temp_file="$(mktemp)"
+
+    $EDITOR "$temp_file" < /dev/tty
+
+    local name="$(cat "$temp_file" | head -1 | sed -e 's@/@_@g' -e 's/ /_/g' -e 's/;/_/g').txt"
+
+    [ x = "x$name" ] && return 1
+
+    mv "$temp_file" "$CHEET_DIR/$name"
+
+    fzf_show
+}
+
+fzf_preview() {
+    local file="${@##*::}"
+    cd "$CHEET_DIR"
+
+    cat "$file"
+}
+
+copy_file() {
+    local file="${@##*::}"
+    xclip -sel clip < "$CHEET_DIR/$file"
+    
+}
+
+main() {
+    while getopts "i:h" OPTION; do
+        case $OPTION in
+            i) export SHEET_FILE="$OPTARG" ;;
+            h) show_help; exit ;;
+            *) echo "Unknown option -$OPTION"; exit ;;
+        esac
+    done
+
+    [ -d "$CHEET_DIR" ] || mkdir -p "$CHEET_DIR"
+
+    export_function
+    fzf_show
+}
+
+main "$@"
