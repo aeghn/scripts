@@ -22,8 +22,8 @@ fzf_show() {
 
     cd "$CHEET_DIR"
 
-    ls *.txt \
-        | xargs awk 'FNR==1 {printf("%s ::%s\n",l, fn); fn=FILENAME; l=""} {l=l" "$0}; END{printf("%s ::%s\n",l, fn);}' \
+
+    xargs awk 'FNR==1 {printf("%s ::%s\n",l, fn); fn=FILENAME; l=""} {l=l" "$0}; END{printf("%s ::%s\n",l, fn);}' *.txt \
         | sed '1d' \
         | fzf --preview "fzf_preview {}" --preview-window=up:70%:wrap --bind="$es,$ar,$noc,$cf"
 }
