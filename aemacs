@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+_emacs="$HOME/.local/bin/emacs"
+_emacsclient="$HOME/.local/bin/emacsclient"
+
+# If set this to 1, then disable the external input method.
+DEIM=1
+
+start() {
+    if ! $_emacsclient -e "nil"; then
+        nocnoc "Emacs Daemon is Starting Up"
+        $_emacs --daemon
+        eval nocnoc $($_emacsclient -e "$(get_start_message)")
+    fi
+
+    $_emacsclient -c
+}
+
+get_start_message() {
+    cat <<EOF
+(format "Ready in %.2f secs with %d gcs."
+        (float-time
+         (time-subtract after-init-time before-init-time))
+        gcs-done)
+EOF
+}
+
+nocnoc () {
+    local icon=$HOME/.scripts/res/icons/emacs.svg
+    local title="GNU/Emacs"
+    
+    noc "$icon" "$title" "$@"
+}
+
+chinbox() {
+    local todo_file="$HOME/Workspace/docs/todo.org"
+    local key='chinbox'
+    local socket="--socket-name=$key"
+
+    if ! i3_show Chin_box; then
+        if ! $_emacsclient $socket -e nil; then
+            chinbox_noc "Chinbox is Starting Up"
+            $_emacs --daemon="$key"
+        fi
+        
+        $_emacsclient -c -F '((name . "Chin_box") (transient . t))'\
+                      -e "(find-file \"$todo_file\")" &
+        
+        for i in {1..5}; do
+            i3_show Chin_box && break || sleep 0.1
+            [ $i -eq 5 ] && chinbox_noc "Cannnot show Chinbox!!!"
+        done
+    fi
+}
+
+chinbox_noc() {
+    local icon="icon=$HOME/.scripts/res/icons/chinbox.png"
+    local title="Chinbox"
+    
+    noc "$icon" "$title" "$@"
+}
+
+noc() {
+    local icon="$1"
+    local title="$2"
+    local content="$3"
+
+    dunstify -i "$icon" -r 2603 "$title" "$content"
+}
+
+i3_show() {
+    i3-msg "[title=^$@$] scratchpad show"
+    return $?
+}
+
+if [ $DEIM -eq 1 ]; then
+    export XMODIFIERS=@im=
+fi
+
+if [ $# -eq 0 ]; then
+    start
+elif [ "$1" = c ]; then
+    chinbox
+else
+    cat <<EOF
+aemacs
+    [void] -- start default emacs
+    c      -- start chinbox
+EOF
+fi
