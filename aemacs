@@ -43,18 +43,18 @@ chinbox() {
             $_emacs --daemon="$key"
         fi
         
-        $_emacsclient -c -F '((name . "Chin_box") (transient . t))'\
+        $_emacsclient $socket -c -F '((name . "Chin_box") (transient . t))'\
                       -e "(find-file \"$todo_file\")" &
         
         for i in {1..5}; do
-            i3_show Chin_box && break || sleep 0.1
+            i3_show Chin_box && break || sleep 0.5
             [ $i -eq 5 ] && chinbox_noc "Cannnot show Chinbox!!!"
         done
     fi
 }
 
 chinbox_noc() {
-    local icon="icon=$HOME/.scripts/res/icons/chinbox.png"
+    local icon="$HOME/.scripts/res/icons/chinbox.png"
     local title="Chinbox"
     
     noc "$icon" "$title" "$@"
@@ -83,6 +83,8 @@ elif [ "$1" = c ]; then
     chinbox
 else
     cat <<EOF
+! Unsupported args.
+
 aemacs
     [void] -- start default emacs
     c      -- start chinbox
